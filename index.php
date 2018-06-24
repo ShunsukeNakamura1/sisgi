@@ -67,7 +67,7 @@ foreach ($json->events as $event) {
                     die();
                 }
                 $chart = new GoogChart();
-                $data = new array();
+                $data = array();
                 if ($result = $stmt->fetchAll()) {
                     foreach($result as $record){
                         $data[$record['date'].' '.$record['time']] = $record['value'];
@@ -77,7 +77,7 @@ foreach ($json->events as $event) {
                         'title' => $key,
                         'data' => $data,
                         'size' => array( 600, 200 ),
-                        'color' => array('#99C754', '#54C7C5', '#999999',);,
+                        'color' => array('#99C754', '#54C7C5', '#999999',),
                         'labelsXY' => true,
                         'fill' => array( '#eeeeee', '#aaaaaa' ),
                     ));
