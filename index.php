@@ -135,7 +135,7 @@ function isGroup($event): bool
 /*ユーザ入力がレコード登録のフォーマット(key + 数値かどうか判定)*/
 function isRecord($userMessage):bool
 {
-    if( preg_match("#^[ぁ-んァ-ヶー一-龠a-zA-Z0-9]+\s\d\.{0,1}\d$#u", $userMessage)){
+    if( preg_match("#^[ぁ-んァ-ヶー一-龠a-zA-Z0-9]+\s\d+\.{0,1}\d*$#u", $userMessage)){
         return true;
     }
     return false;
