@@ -227,7 +227,7 @@ class GoogChart
 	*/
 	protected function img( $url, $alt = null )
 	{
-		return sprintf('<img src="%s" alt="%s" style="width:%spx;height:%spx;" />', $url, $alt, $this->size[0], $this->size[1]);
+		return sprintf('"%s" alt="%s" style="width:%spx;height:%spx;"', $url, $alt, $this->size[0], $this->size[1]);
 	}
 
 

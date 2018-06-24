@@ -65,7 +65,7 @@ foreach ($json->events as $event) {
                 } catch (PDOException $e) {
                     error_log("PDO Error:".$e->getMessage()."\n");
                     die();
-                }/*
+                }
                 $chart = new GoogChart();
                 $data = array();
                 if ($result = $stmt->fetchAll()) {
@@ -81,41 +81,12 @@ foreach ($json->events as $event) {
                         'labelsXY' => true,
                         'fill' => array( '#eeeeee', '#aaaaaa' ),
                     ));
-                    $textMessages[] = $chart;
+                    $textMessages[] = $chart->display();
                 }
 
                 else {
                     $textMessages[] = "記録がありません．";
-                }*/
-$chart = new GoogChart();
- $data = array(
-    'IE7' => 22,
-    'IE6' => 30.7,
-    'IE5' => 1.7,
-    'Firefox' => 36.5,
-    'Mozilla' => 1.1,
-    'Safari' => 2,
-    'Opera' => 1.4,
-);
-
-// Set graph colors
-$color = array(
-    '#99C754',
-    '#54C7C5',
-    '#999999',
-);
-
-// # Chart 1 #
-echo '<h2>Pie chart</h2>';
-$chart->setChartAttrs( array(
-    'type' => 'pie',
-    'title' => 'Browser market 2008',
-    'data' => $data,
-    'size' => array( 400, 300 ),
-    'color' => $color
-));
-// Print chart
-$textMessages[] = $chart->display();    
+                }
                 break;
             case "explain":
                 return;
