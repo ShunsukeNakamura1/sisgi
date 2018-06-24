@@ -69,7 +69,7 @@ class GoogChart
 
 	/** Create chart
 	*/
-	protected function display()
+	public function display()
 	{
 		// Create query
 		$this->query = array(
