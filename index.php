@@ -182,8 +182,7 @@ function isFraction($userMessage): bool
 /*ユーザ入力がレコード登録のフォーマット(key + 数値かどうか判定)*/
 function isRecord($userMessage):bool
 {
-    mb_regex_encoding("UTF-8");
-    if( preg_match("#^[ぁ-んァ-ヶー一-龠a-zA-Z0-9]+$/u\s\d+$#")){
+    if( preg_match("#^[ぁ-んァ-ヶー一-龠a-zA-Z0-9]+\s\d+$#u", $userMessage)){
         return true;
     }
     return false;
