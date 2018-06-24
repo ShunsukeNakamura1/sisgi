@@ -115,7 +115,7 @@ $chart->setChartAttrs( array(
     'color' => $color
 ));
 // Print chart
-$textMessages[] = $chart;    
+$textMessages[] = $chart->display()[0];    
                 break;
             case "explain":
                 return;
