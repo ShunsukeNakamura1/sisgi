@@ -48,7 +48,7 @@ foreach ($json->events as $event) {
                     $stmt->bindParam(':time', $time, PDO::PARAM_STR);
                     $stmt->execute();
                 } catch (PDOException $e) {
-                    error_log("PDO Error:".$e->getMessage()."\n");
+                    //error_log("PDO Error:".$e->getMessage()."\n");
                     die();
                 }
                 $textMessages[] = "登録しました．";
