@@ -30,30 +30,34 @@ foreach ($json->events as $event) {
             case "hello":
                 $textMessages[] = "はい，こんにちは．";
                 break;
-            case "insert_request":
-                $num = explode("/", $userMessage);
-                $now = date('Y-m-d H:i:s');
-                $confirmMessage = "射数:".$num[1]."\n的中数:".$num[0]."\nで登録をします\n".$now;
-                //はい ボタン
-                $yes_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("はい", $userMessage."@".$now);
-                //いいえボタン
-                $no_post = new LINE\LINEBot\TemplateActionBuilder\PostbackTemplateActionBuilder("いいえ", "no@".$now);
-                //Confirmテンプレート
-                $confirm = new LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder($confirmMessage, [$yes_post, $no_post]);
-                // Confirmメッセージを作る
-                $replyMessage = new LINE\LINEBot\MessageBuilder\TemplateMessageBuilder("メッセージ", $confirm);
-                $response = $bot->replyMessage($event->replyToken, $replyMessage);
-                error_log(var_export($response,true));
-                return;
             case "insert":
-                $textMessages[] = "insert";
+                $now = date('Y-m-d H:i:s');
+                $data = explode(" ", $userMessage);
+                $userID = $event->source->userId;  //ユーザID
+                $key = $data[0];                   //キー
+                $value = $data[1];                 //値
+                $date = date('Y-m-d');
+                $time = date('H:i:s');
+                try{
+                    $pdo = connectDataBase();
+                    $stmt = $pdo->prepare("insert into record values(:userID, :key, :value, :date, :time");
+                    $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
+                    $stmt->bindParam(':key', $key, PDO::PARAM_STR);
+                    $stmt->bindParam(':value', $value, PDO::PARAM_STR);
+                    $stmt->bindParam(':date', $date, PDO::PARAM_STR);
+                    $stmt->bindParam(':time', $time, PDO::PARAM_STR);
+                    $stmt->execute();
+                } catch (PDOException $e) {
+                    error_log("PDO Error:".$e->getMessage()."\n");
+                    die();
+                }
+                $textMessages[] = "登録しました．";
                 
                 break;
             case "explain":
                 return;
             default:
                 $textMessages[] = $event->message->text;
-                $textMessages[] = "aiueo";
             }
         }
         //文字列以外は無視
@@ -128,57 +132,6 @@ function isGroup($event): bool
     }
 }
 
-/*登録しようとしているデータが新しいもの(登録済みでない or Noが押されてない)か調べる
-insert :その日初めてのデータ > 登録
-old    :最新のものではないデータ > 無視
-update :最新のデータ > 更新する*/
-function insertMode($userID, $newDateTime): array
-{
-    $buf = explode(" ", $newDateTime);
-    $date = $buf[0];
-    $newTime = $buf[1];
-    //時間を見て調べる
-    try{
-        $pdo = connectDataBase();
-        $stmt = $pdo->prepare("select hit, atmpt, time from record where userid = :userID and date=:date");
-        $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
-        $stmt->bindParam(':date', $date, PDO::PARAM_STR);
-        $stmt->execute();
-    } catch (PDOException $e) {
-        echo "PDO Error:".$e->getMessage()."\n";
-        die();
-    }
-    if ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        //登録済みだった場合時間を比較
-        $buf = explode(":", $newTime);
-        error_log(var_export($buf, true));
-        $newTime = (int)$buf[0]*10000 + (int)$buf[1]*100 + (int)$buf[2]*1;
-        $buf = explode(":", $result['time']);
-        $time = (int)$buf[0]*10000 + (int)$buf[1]*100 + (int)$buf[2]*1;
-        //新しいデータなら更新、古ければ無視
-        if ($newTime > $time) {
-            return array("mode" => "update", "hit" => $result['hit'], "atmpt" => $result['atmpt']);
-        } else {
-            return array("mode" => "old", "hit" => 0, "atmpt" => 0);
-        }
-    } else {
-        //登録されていなかった場合レコードを登録
-        return array("mode" => "insert", "hit" => 0, "atmpt" => 0);
-    }
-}
-
-/*ユーザ入力が分数の形かつ分母が大きいかを調べる*/
-function isFraction($userMessage): bool
-{
-    if ( preg_match("#^\d+/\d+$#", $userMessage, $matches) ) {
-        $numbers = explode("/", $userMessage);
-        if ($numbers[0] <= $numbers[1]) {
-            return true;
-        }
-    }
-    return false;
-}
-
 /*ユーザ入力がレコード登録のフォーマット(key + 数値かどうか判定)*/
 function isRecord($userMessage):bool
 {
@@ -190,9 +143,7 @@ function isRecord($userMessage):bool
 /*ユーザメッセージに応じて対応のモードを返す*/
 function replyMode($userMessage): string
 {
-    if (isFraction($userMessage)) {
-        return "insert_request";
-    } else if (isRecord($userMessage)) {
+    if (isRecord($userMessage)) {
         return "insert";
     } else if ($userMessage == "こんにちは") {
         return "hello";
