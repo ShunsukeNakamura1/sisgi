@@ -73,7 +73,7 @@ foreach ($json->events as $event) {
                         $data[$record['date'].' '.$record['time']] = $record['value'];
                     }
                     $chart->setChartAttrs( array(
-                        'type' => 'sparkline',
+                        'type' => 'line',
                         'title' => $key,
                         'data' => $data,
                         'size' => array( 600, 200 ),
