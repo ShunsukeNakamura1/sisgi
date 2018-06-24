@@ -76,7 +76,7 @@ foreach ($json->events as $event) {
                         'type' => 'line',
                         'title' => $key,
                         'data' => $data,
-                        'size' => array( 600, 200 ),
+                        'size' => array( 600, 500 ),
                         'color' => array('#99C754', '#54C7C5', '#999999',),
                         'labelsXY' => true,
                         'fill' => array( '#eeeeee', '#aaaaaa' ),
