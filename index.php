@@ -176,7 +176,7 @@ function isRecord($userMessage):bool
 /*ユーザ入力がレコード表示リクエストのフォーマット(記録 + キー)かどうか判定*/
 function isDisp($userMessage):bool
 {
-    if(preg_match("#^記録\s[ぁ-んァ-ヶー一-龠a-zA-Z0-9]+$#u", $userMeddage)) {
+    if(preg_match("#^記録\s[ぁ-んァ-ヶー一-龠a-zA-Z0-9]+$#u", $userMessage)) {
         return true;
     }
     return false;
