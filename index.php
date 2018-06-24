@@ -40,10 +40,10 @@ foreach ($json->events as $event) {
                 $time = date('H:i:s');
                 try{
                     $pdo = connectDataBase();
-                    $stmt = $pdo->prepare("insert into record values(:userID, :key, :value, :date, :time");
+                    $stmt = $pdo->prepare("insert into record values(:userID, :key, 1.1, :date, :time");
                     $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
                     $stmt->bindParam(':key', $key, PDO::PARAM_STR);
-                    $stmt->bindParam(':value', $value, PDO::PARAM_STR);
+                    //$stmt->bindParam(':value', $value, PDO::PARAM_STR);
                     $stmt->bindParam(':date', $date, PDO::PARAM_STR);
                     $stmt->bindParam(':time', $time, PDO::PARAM_STR);
                     $stmt->execute();
