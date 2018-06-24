@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
+include( 'GoogChart.class.php' );
 
 date_default_timezone_set('Asia/Tokyo');
 
@@ -25,23 +26,22 @@ foreach ($json->events as $event) {
         if (isMessage_Text($event)) {
             $userMessage = $event->message->text;
             $mode = replyMode($userMessage);
+            $userID = $event->source->userId;  //ユーザID
+            $date = date('Y-m-d');             //日にち
+            $time = date('H:i:s');             //時間
             //それぞれのモードに対して応答
             switch ($mode) {
             case "hello":
                 $textMessages[] = "はい，こんにちは．";
                 break;
             case "insert":
-                $now = date('Y-m-d H:i:s');
                 $data = explode(" ", $userMessage);
-                $userID = $event->source->userId;  //ユーザID
                 $key = $data[0];                   //キー
                 $value = $data[1];                 //値
-                $date = date('Y-m-d');
-                $time = date('H:i:s');
                 try{
                     $pdo = connectDataBase();
-                    $stmt = $pdo->prepare("insert into record values(:userID, :key, :value, :date, :time)");
-                    $stmt->bindParam(':userID', $userID, PDO::PARAM_STR);
+                    $stmt = $pdo->prepare("insert into record values(:userid, :key, :value, :date, :time)");
+                    $stmt->bindParam(':userid', $userID, PDO::PARAM_STR);
                     $stmt->bindParam(':key', $key, PDO::PARAM_STR);
                     $stmt->bindParam(':value', $value, PDO::PARAM_STR);
                     $stmt->bindParam(':date', $date, PDO::PARAM_STR);
@@ -52,7 +52,40 @@ foreach ($json->events as $event) {
                     die();
                 }
                 $textMessages[] = "登録しました．";
-                
+                break;
+            case "disp":
+                $data = explode(" ", $userMessage);
+                $key = $data[1];  //キー
+                try{//レコードを取得
+                    $pdo = connectDataBase();
+                    $stmt = $pdo->prepare("select * from record where userid = :userid and key = :key");
+                    $stmt->bindParam(':userid', $userID, PDO::PARAM_STR);
+                    $stmt->bindParam(':key', $key, PDO::PARAM_STR);
+                    $stmt->execute();
+                } catch (PDOException $e) {
+                    error_log("PDO Error:".$e->getMessage()."\n");
+                    die();
+                }
+                $chart = new GoogChart();
+                $data = new array();
+                if ($result = $stmt->fetchAll()) {
+                    foreach($result as $record){
+                        $data[$record['date'].' '.$record['time']] = $record['value'];
+                    }
+                    $chart->setChartAttrs( array(
+                        'type' => 'sparkline',
+                        'title' => $key,
+                        'data' => $data,
+                        'size' => array( 600, 200 ),
+                        'color' => array('#99C754', '#54C7C5', '#999999',);,
+                        'labelsXY' => true,
+                        'fill' => array( '#eeeeee', '#aaaaaa' ),
+                    ));
+                    $textMessages[] = $chart;
+                }
+                else {
+                    $textMessages[] = "記録がありません．";
+                }
                 break;
             case "explain":
                 return;
@@ -132,7 +165,7 @@ function isGroup($event): bool
     }
 }
 
-/*ユーザ入力がレコード登録のフォーマット(key + 数値かどうか判定)*/
+/*ユーザ入力がレコード登録のフォーマット(key + 数値)かどうか判定*/
 function isRecord($userMessage):bool
 {
     if( preg_match("#^[ぁ-んァ-ヶー一-龠a-zA-Z0-9]+\s\d+\.{0,1}\d*$#u", $userMessage)){
@@ -140,12 +173,23 @@ function isRecord($userMessage):bool
     }
     return false;
 }
+/*ユーザ入力がレコード表示リクエストのフォーマット(記録 + キー)かどうか判定*/
+function isDisp($userMessage):bool
+{
+    if(preg_match("#^記録\s[ぁ-んァ-ヶー一-龠a-zA-Z0-9]+$#u", $userMeddage)) {
+        return true;
+    }
+    return false;
+}
+
 /*ユーザメッセージに応じて対応のモードを返す*/
 function replyMode($userMessage): string
 {
     if (isRecord($userMessage)) {
         return "insert";
-    } else if ($userMessage == "こんにちは") {
+    } else if(isDisp($userMessage)) {
+        return "disp";
+    }else if ($userMessage == "こんにちは") {
         return "hello";
     } else if ($userMessage == "使い方") {
         return "explain";
